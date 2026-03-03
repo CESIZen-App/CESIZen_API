@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="../build/CESIZen_API.props" />
-</Project>

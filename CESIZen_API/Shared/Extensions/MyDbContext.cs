@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using CESIZen_API.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace CESIZen_API.Models;
+namespace CESIZen_API.Shared.Extensions;
 
 public partial class MyDbContext : DbContext
 {
