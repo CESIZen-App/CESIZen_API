@@ -1,0 +1,23 @@
+{
+  "Version": 1,
+  "Hash": "cG6J/SBd8AutaLnSWwlfD4/wF/9XrlBGy8Vi70qCG3g=",
+  "Source": "CESIZen_API",
+  "BasePath": "_content/CESIZen_API",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [
+    {
+      "Identity": "/Users/hugo/Documents/ProjetCDA/CESI_Zen_App/CESIZen_Infra/CESIZen_Infra/CESIZen_Infra.csproj",
+      "Version": 2,
+      "Source": "CESIZen_Infra",
+      "GetPublishAssetsTargets": "ComputeReferencedStaticWebAssetsPublishManifest;GetCurrentProjectPublishStaticWebAssetItems",
+      "AdditionalPublishProperties": "",
+      "AdditionalPublishPropertiesToRemove": "WebPublishProfileFile;TargetFramework",
+      "GetBuildAssetsTargets": "GetCurrentProjectBuildStaticWebAssetItems",
+      "AdditionalBuildProperties": "",
+      "AdditionalBuildPropertiesToRemove": "WebPublishProfileFile;TargetFramework"
+    }
+  ],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
