@@ -1,9 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using CESIZen_API.Models;
+﻿using CESIZen_API.API.User.Models;
+using CESIZen_API.API.Exercice.Models;
+using CESIZen_API.API.Role.Models;
+using CESIZen_API.API.ConfigRespiration.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace CESIZen_API.Shared.Extensions;
+namespace CESIZen_API.Shared.Data;
 
 public partial class MyDbContext : DbContext
 {
@@ -16,21 +17,16 @@ public partial class MyDbContext : DbContext
     {
     }
 
-    public virtual DbSet<ConfigsRespiration> ConfigsRespirations { get; set; }
+    public virtual DbSet<ConfigsRespirationModel> ConfigsRespirations { get; set; }
 
-    public virtual DbSet<Exercice> Exercices { get; set; }
+    public virtual DbSet<ExerciceModel> Exercices { get; set; }
 
-    public virtual DbSet<Role> Roles { get; set; }
+    public virtual DbSet<RoleModel> Roles { get; set; }
 
-    public virtual DbSet<User> Users { get; set; }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseNpgsql("Host=localhost;Database=cesizen_db;Username=postgres;Password=password");
-
+    public virtual DbSet<UserModel> Users { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<ConfigsRespiration>(entity =>
+        modelBuilder.Entity<ConfigsRespirationModel>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("configs_respiration_pkey");
 
@@ -50,7 +46,7 @@ public partial class MyDbContext : DbContext
                 .HasConstraintName("fk_exercice");
         });
 
-        modelBuilder.Entity<Exercice>(entity =>
+        modelBuilder.Entity<ExerciceModel>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("exercices_pkey");
 
@@ -71,7 +67,7 @@ public partial class MyDbContext : DbContext
                 .HasConstraintName("fk_createur");
         });
 
-        modelBuilder.Entity<Role>(entity =>
+        modelBuilder.Entity<RoleModel>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("roles_pkey");
 
@@ -83,7 +79,7 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("libelle");
         });
 
-        modelBuilder.Entity<User>(entity =>
+        modelBuilder.Entity<UserModel>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("users_pkey");
 
@@ -99,7 +95,7 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(100)
                 .HasColumnName("nom");
             entity.Property(e => e.Password)
-                .HasMaxLength(255)
+                .HasMaxLength(500)
                 .HasColumnName("password");
             entity.Property(e => e.RoleId).HasColumnName("role_id");
 

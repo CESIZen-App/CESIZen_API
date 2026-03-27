@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using CESIZen_API.API.ConfigRespiration.Models;
+using CESIZen_API.API.User.Models;
 
-namespace CESIZen_API.Models;
+namespace CESIZen_API.API.Exercice.Models;
 
-public partial class Exercice
+public partial class ExerciceModel
 {
     public int Id { get; set; }
 
@@ -15,7 +17,7 @@ public partial class Exercice
 
     public int CreateurId { get; set; }
 
-    public virtual ICollection<ConfigsRespiration> ConfigsRespirations { get; set; } = new List<ConfigsRespiration>();
+    public virtual ICollection<ConfigsRespirationModel> ConfigsRespirations { get; set; } = new List<ConfigsRespirationModel>();
 
-    public virtual User Createur { get; set; } = null!;
+    public virtual UserModel Createur { get; set; } = null!;
 }

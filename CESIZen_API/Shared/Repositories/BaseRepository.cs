@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using CESIZen_API.Shared.Data;
 using CESIZen_API.Shared.Extensions; 
 
 namespace CESIZen_API.Shared.Repositories;
@@ -29,13 +30,6 @@ public class BaseRepository<TModel> : IBaseRepository<TModel> where TModel : cla
     public virtual async Task DeleteAsync(TModel model, CancellationToken cancellationToken = default)
     {
         _context.Set<TModel>().Remove(model);
-        await SaveChangesAsync(cancellationToken);
-    }
-
-    public virtual async Task SoftDeleteAsync(TModel model, CancellationToken cancellationToken = default)
-    {
-        // Note: Pour que SoftDelete fonctionne, ton modèle doit avoir une propriété (ex: IsDeleted)
-        _context.Set<TModel>().Update(model);
         await SaveChangesAsync(cancellationToken);
     }
 

@@ -113,3 +113,13 @@
 /Users/hugo/Documents/ProjetCDA/CESI_Zen_App/CESIZen_API/CESIZen_API/obj/Debug/net8.0/staticwebassets.build.endpoints.json
 /Users/hugo/Documents/ProjetCDA/CESI_Zen_App/CESIZen_API/CESIZen_API/obj/Debug/net8.0/swae.build.ex.cache
 /Users/hugo/Documents/ProjetCDA/CESI_Zen_App/CESIZen_API/CESIZen_API/obj/Debug/net8.0/CESIZen_.4053FD9F.Up2Date
+/Users/hugo/Documents/ProjetCDA/CESI_Zen_App/CESIZen_API/CESIZen_API/bin/Debug/net8.0/Microsoft.AspNetCore.Authentication.JwtBearer.dll
+/Users/hugo/Documents/ProjetCDA/CESI_Zen_App/CESIZen_API/CESIZen_API/bin/Debug/net8.0/Microsoft.IdentityModel.Abstractions.dll
+/Users/hugo/Documents/ProjetCDA/CESI_Zen_App/CESIZen_API/CESIZen_API/bin/Debug/net8.0/Microsoft.IdentityModel.JsonWebTokens.dll
+/Users/hugo/Documents/ProjetCDA/CESI_Zen_App/CESIZen_API/CESIZen_API/bin/Debug/net8.0/Microsoft.IdentityModel.Logging.dll
+/Users/hugo/Documents/ProjetCDA/CESI_Zen_App/CESIZen_API/CESIZen_API/bin/Debug/net8.0/Microsoft.IdentityModel.Protocols.dll
+/Users/hugo/Documents/ProjetCDA/CESI_Zen_App/CESIZen_API/CESIZen_API/bin/Debug/net8.0/Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+/Users/hugo/Documents/ProjetCDA/CESI_Zen_App/CESIZen_API/CESIZen_API/bin/Debug/net8.0/Microsoft.IdentityModel.Tokens.dll
+/Users/hugo/Documents/ProjetCDA/CESI_Zen_App/CESIZen_API/CESIZen_API/bin/Debug/net8.0/System.IdentityModel.Tokens.Jwt.dll
+/Users/hugo/Documents/ProjetCDA/CESI_Zen_App/CESIZen_API/CESIZen_API/bin/Debug/net8.0/DotNetEnv.dll
+/Users/hugo/Documents/ProjetCDA/CESI_Zen_App/CESIZen_API/CESIZen_API/bin/Debug/net8.0/Sprache.dll
