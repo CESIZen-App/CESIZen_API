@@ -61,5 +61,19 @@ namespace CESIZen_API.API.User.Controllers
             await _userService.DeleteAsync(id);
             return NoContent();
         }
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDTO dto)
+        {
+            await _userService.ForgotPasswordAsync(dto);
+            return Ok(new { message = "Si cet email est enregistré, un lien de réinitialisation a été envoyé." });
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDTO dto)
+        {
+            await _userService.ResetPasswordAsync(dto);
+            return Ok(new { message = "Mot de passe réinitialisé avec succès." });
+        }
     }
 }
