@@ -1,0 +1,25 @@
+## .NET / C#
+bin/
+obj/
+*.user
+*.suo
+.vs/
+.idea/
+*.DS_Store
+
+## Environnement
+.env
+*.env.local
+
+## NuGet
+packages/
+*.nupkg
+
+## Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+
+## Publish
+publish/
