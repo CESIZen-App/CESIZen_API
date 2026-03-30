@@ -45,4 +45,21 @@ namespace CESIZen_API.API.User.DTOs
         public string Email { get; set; } = null!;
         public int RoleId { get; set; }
     }
+
+    public class ForgotPasswordDTO
+    {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = null!;
+    }
+
+    public class ResetPasswordDTO
+    {
+        [Required]
+        public string Token { get; set; } = null!;
+
+        [Required]
+        [PasswordValidator]
+        public string NewPassword { get; set; } = null!;
+    }
 }

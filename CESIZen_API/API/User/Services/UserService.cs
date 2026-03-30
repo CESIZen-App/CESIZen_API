@@ -1,10 +1,14 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using CESIZen_API.API.User.DTOs;
 using CESIZen_API.API.User.Models;
 using CESIZen_API.API.User.Repositories;
+using CESIZen_API.Shared.Data;
+using CESIZen_API.Shared.Email;
 using CESIZen_API.Shared.Utils;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 namespace CESIZen_API.API.User.Services
@@ -13,11 +17,18 @@ namespace CESIZen_API.API.User.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly IConfiguration _configuration;
+        private readonly MyDbContext _context;
+        private readonly IEmailService _emailService;
 
-        public UserService(IUserRepository userRepository, IConfiguration configuration)
+        // RoleId en base : 1 = ADMIN, 2 = USER (cf. SQL INSERT INTO roles)
+        private const int RoleIdUser = 2;
+
+        public UserService(IUserRepository userRepository, IConfiguration configuration, MyDbContext context, IEmailService emailService)
         {
             _userRepository = userRepository;
             _configuration = configuration;
+            _context = context;
+            _emailService = emailService;
         }
 
         public async Task<string> RegisterAsync(RegisterDTO dto)
@@ -33,16 +44,18 @@ namespace CESIZen_API.API.User.Services
                 Nom = dto.Nom,
                 Email = dto.Email,
                 Password = $"{hash}:{Convert.ToHexString(salt)}",
-                RoleId = 1
+                RoleId = RoleIdUser   // FIXE : tous les nouveaux inscrits sont USER, pas ADMIN
             };
 
             await _userRepository.AddAsync(user);
-            return GenerateToken(user);
+            // Rôle connu à la création (USER), pas besoin d'un aller-retour DB supplémentaire
+            return GenerateToken(user, "USER");
         }
 
         public async Task<string> LoginAsync(LoginDTO dto)
         {
-            var user = await _userRepository.GetByEmailAsync(dto.Email)
+            // FIXE : on charge le Role pour avoir le libelle dans le JWT
+            var user = await _userRepository.GetByEmailWithRoleAsync(dto.Email)
                 ?? throw new UnauthorizedAccessException("Email ou mot de passe incorrect.");
 
             var parts = user.Password.Split(':');
@@ -55,7 +68,7 @@ namespace CESIZen_API.API.User.Services
             if (!PasswordUtils.VerifyPassword(dto.Password, hash, salt))
                 throw new UnauthorizedAccessException("Email ou mot de passe incorrect.");
 
-            return GenerateToken(user);
+            return GenerateToken(user, user.Role.Libelle);
         }
 
         public async Task<IEnumerable<UserResponseDTO>> GetAllAsync()
@@ -87,7 +100,7 @@ namespace CESIZen_API.API.User.Services
             await _userRepository.UpdateAsync(user);
             return MapToResponse(user);
         }
-    
+
         public async Task DeleteAsync(int id)
         {
             var user = await _userRepository.FindAsync(id)
@@ -95,7 +108,8 @@ namespace CESIZen_API.API.User.Services
             await _userRepository.DeleteAsync(user);
         }
 
-        private string GenerateToken(UserModel user)
+        // FIXE : roleName est le libelle string ("ADMIN" / "USER") et non plus le RoleId
+        private string GenerateToken(UserModel user, string roleName)
         {
             var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET")
                 ?? _configuration["JWT_SECRET"]
@@ -108,7 +122,7 @@ namespace CESIZen_API.API.User.Services
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Role, user.RoleId.ToString())
+                new Claim(ClaimTypes.Role, roleName)   // "ADMIN" ou "USER"
             };
 
             var token = new JwtSecurityToken(
@@ -118,6 +132,46 @@ namespace CESIZen_API.API.User.Services
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        public async Task ForgotPasswordAsync(ForgotPasswordDTO dto)
+        {
+            // On ne révèle pas si l'email existe ou non (sécurité)
+            var user = await _userRepository.GetByEmailAsync(dto.Email);
+            if (user == null) return;
+
+            var token = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
+
+            var resetToken = new PasswordResetTokenModel
+            {
+                UserId = user.Id,
+                Token = token,
+                ExpiresAt = DateTime.UtcNow.AddHours(1),
+                Used = false
+            };
+
+            _context.PasswordResetTokens.Add(resetToken);
+            await _context.SaveChangesAsync();
+
+            await _emailService.SendPasswordResetEmailAsync(dto.Email, token);
+        }
+
+        public async Task ResetPasswordAsync(ResetPasswordDTO dto)
+        {
+            var resetToken = await _context.PasswordResetTokens
+                .FirstOrDefaultAsync(t => t.Token == dto.Token && !t.Used && t.ExpiresAt > DateTime.UtcNow)
+                ?? throw new InvalidOperationException("Token invalide ou expiré.");
+
+            var user = await _userRepository.FindAsync(resetToken.UserId)
+                ?? throw new KeyNotFoundException("Utilisateur introuvable.");
+
+            var hash = PasswordUtils.HashPassword(dto.NewPassword, out byte[] salt);
+            user.Password = $"{hash}:{Convert.ToHexString(salt)}";
+
+            resetToken.Used = true;
+
+            await _userRepository.UpdateAsync(user);
+            await _context.SaveChangesAsync();
         }
 
         private static UserResponseDTO MapToResponse(UserModel user) => new()

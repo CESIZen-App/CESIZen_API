@@ -3,9 +3,17 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using CESIZen_API.API.ConfigRespiration.Repositories;
+using CESIZen_API.API.ConfigRespiration.Services;
+using CESIZen_API.API.Exercice.Factory;
+using CESIZen_API.API.Exercice.Factory.Implementations;
+using CESIZen_API.API.Exercice.Repositories;
+using CESIZen_API.API.Exercice.Services;
+using CESIZen_API.API.Information.Repositories;
+using CESIZen_API.API.Information.Services;
+using CESIZen_API.Shared.Email;
 using CESIZen_API.API.Role.Repositories;
 using CESIZen_API.API.Role.Services;
-using CESIZen_API.API.User.Models;
 using CESIZen_API.API.User.Repositories;
 using CESIZen_API.API.User.Services;
 using CESIZen_API.Shared.Data;
@@ -31,12 +39,26 @@ namespace CESIZen_API.Shared.Extensions
         {
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IRoleService, RoleService>();
+            builder.Services.AddScoped<IExerciceService, ExerciceService>();
+            builder.Services.AddScoped<IConfigRespirationService, ConfigRespirationService>();
+            builder.Services.AddScoped<IInformationService, InformationService>();
+            builder.Services.AddScoped<IEmailService, SmtpEmailService>();
+
+            // Factory pattern — exercices de respiration
+            builder.Services.AddScoped<IExerciceRespirationFactory, Technique748Factory>();
+            builder.Services.AddScoped<IExerciceRespirationFactory, Technique55Factory>();
+            builder.Services.AddScoped<IExerciceRespirationFactory, Technique46Factory>();
+            builder.Services.AddScoped<ExerciceRespirationFactoryResolver>();
         }
 
         public static void AddRepositories(this WebApplicationBuilder builder)
         {
             builder.Services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
             builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<IExerciceRepository, ExerciceRepository>();
+            builder.Services.AddScoped<IConfigRespirationRepository, ConfigRespirationRepository>();
+            builder.Services.AddScoped<IInformationRepository, InformationRepository>();
+
             builder.Services.AddScoped(typeof(IRoleRepository), typeof(RoleRepository));
         }
 
