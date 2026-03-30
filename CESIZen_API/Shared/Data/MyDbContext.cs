@@ -1,5 +1,6 @@
 ﻿using CESIZen_API.API.User.Models;
 using CESIZen_API.API.Exercice.Models;
+using CESIZen_API.API.Information.Models;
 using CESIZen_API.API.Role.Models;
 using CESIZen_API.API.ConfigRespiration.Models;
 using Microsoft.EntityFrameworkCore;
@@ -21,9 +22,13 @@ public partial class MyDbContext : DbContext
 
     public virtual DbSet<ExerciceModel> Exercices { get; set; }
 
+    public virtual DbSet<InformationModel> Informations { get; set; }
+
     public virtual DbSet<RoleModel> Roles { get; set; }
 
     public virtual DbSet<UserModel> Users { get; set; }
+
+    public virtual DbSet<PasswordResetTokenModel> PasswordResetTokens { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<ConfigsRespirationModel>(entity =>
@@ -103,6 +108,43 @@ public partial class MyDbContext : DbContext
                 .HasForeignKey(d => d.RoleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_role");
+        });
+
+        modelBuilder.Entity<PasswordResetTokenModel>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("password_reset_tokens_pkey");
+
+            entity.ToTable("password_reset_tokens");
+
+            entity.HasIndex(e => e.Token).IsUnique();
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.Token).HasMaxLength(255).HasColumnName("token");
+            entity.Property(e => e.ExpiresAt).HasColumnName("expires_at");
+            entity.Property(e => e.Used).HasDefaultValue(false).HasColumnName("used");
+
+            entity.HasOne(d => d.User).WithMany()
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("fk_user_reset");
+        });
+
+        modelBuilder.Entity<InformationModel>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("informations_pkey");
+
+            entity.ToTable("informations");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Titre)
+                .HasMaxLength(200)
+                .HasColumnName("titre");
+            entity.Property(e => e.Contenu).HasColumnName("contenu");
+            entity.Property(e => e.IsPublished)
+                .HasDefaultValue(false)
+                .HasColumnName("is_published");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
         });
 
         OnModelCreatingPartial(modelBuilder);
