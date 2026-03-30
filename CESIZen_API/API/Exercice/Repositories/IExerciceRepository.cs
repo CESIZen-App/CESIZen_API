@@ -1,6 +1,11 @@
-namespace CESIZen_API.API.Exercice.Repositories;
+using CESIZen_API.Shared.Repositories;
+using ExerciceModel = CESIZen_API.API.Exercice.Models.ExerciceModel;
 
-public class IExerciceRepository
+namespace CESIZen_API.API.Exercice.Repositories
 {
-    
+    public interface IExerciceRepository : IBaseRepository<ExerciceModel>
+    {
+        Task<List<ExerciceModel>> GetByCreateurAsync(int createurId, CancellationToken cancellationToken = default);
+        Task<List<ExerciceModel>> GetPublicAsync(CancellationToken cancellationToken = default);
+    }
 }
