@@ -10,5 +10,7 @@ namespace CESIZen_API.API.User.Services
         Task<UserResponseDTO?> GetByIdAsync(int id);
         Task<UserResponseDTO> UpdateAsync(int id, UpdateUserDTO dto);
         Task DeleteAsync(int id);
+        Task ForgotPasswordAsync(ForgotPasswordDTO dto);
+        Task ResetPasswordAsync(ResetPasswordDTO dto);
     }
 }
