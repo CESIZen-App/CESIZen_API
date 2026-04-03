@@ -62,4 +62,17 @@ namespace CESIZen_API.API.User.DTOs
         [PasswordValidator]
         public string NewPassword { get; set; } = null!;
     }
+
+    public class ChangeRoleDTO
+    {
+        [Required]
+        [Range(1, 2, ErrorMessage = "RoleId doit être 1 (ADMIN) ou 2 (USER).")]
+        public int RoleId { get; set; }
+    }
+
+    public class AuthResponseDTO
+    {
+        public string Token { get; set; } = null!;
+        public UserResponseDTO User { get; set; } = null!;
+    }
 }

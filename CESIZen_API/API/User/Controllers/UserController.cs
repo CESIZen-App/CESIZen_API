@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using CESIZen_API.API.User.DTOs;
 using CESIZen_API.API.User.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -19,15 +20,24 @@ namespace CESIZen_API.API.User.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDTO dto)
         {
-            var token = await _userService.RegisterAsync(dto);
-            return Ok(new { token });
+            var result = await _userService.RegisterAsync(dto);
+            return Ok(result);
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDTO dto)
         {
-            var token = await _userService.LoginAsync(dto);
-            return Ok(new { token });
+            var result = await _userService.LoginAsync(dto);
+            return Ok(result);
+        }
+
+        [Authorize]
+        [HttpGet("me")]
+        public async Task<IActionResult> GetMe()
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var user = await _userService.GetByIdAsync(userId);
+            return Ok(user);
         }
 
         [Authorize]
@@ -60,6 +70,14 @@ namespace CESIZen_API.API.User.Controllers
         {
             await _userService.DeleteAsync(id);
             return NoContent();
+        }
+
+        [Authorize(Roles = "ADMIN")]
+        [HttpPatch("{id}/role")]
+        public async Task<IActionResult> ChangeRole(int id, [FromBody] ChangeRoleDTO dto)
+        {
+            var user = await _userService.ChangeRoleAsync(id, dto);
+            return Ok(user);
         }
 
         [HttpPost("forgot-password")]
