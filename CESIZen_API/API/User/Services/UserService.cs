@@ -31,7 +31,7 @@ namespace CESIZen_API.API.User.Services
             _emailService = emailService;
         }
 
-        public async Task<string> RegisterAsync(RegisterDTO dto)
+        public async Task<AuthResponseDTO> RegisterAsync(RegisterDTO dto)
         {
             var existing = await _userRepository.GetByEmailAsync(dto.Email);
             if (existing != null)
@@ -49,10 +49,11 @@ namespace CESIZen_API.API.User.Services
 
             await _userRepository.AddAsync(user);
             // Rôle connu à la création (USER), pas besoin d'un aller-retour DB supplémentaire
-            return GenerateToken(user, "USER");
+            var token = GenerateToken(user, "USER");
+            return new AuthResponseDTO { Token = token, User = MapToResponse(user) };
         }
 
-        public async Task<string> LoginAsync(LoginDTO dto)
+        public async Task<AuthResponseDTO> LoginAsync(LoginDTO dto)
         {
             // FIXE : on charge le Role pour avoir le libelle dans le JWT
             var user = await _userRepository.GetByEmailWithRoleAsync(dto.Email)
@@ -68,7 +69,8 @@ namespace CESIZen_API.API.User.Services
             if (!PasswordUtils.VerifyPassword(dto.Password, hash, salt))
                 throw new UnauthorizedAccessException("Email ou mot de passe incorrect.");
 
-            return GenerateToken(user, user.Role.Libelle);
+            var token = GenerateToken(user, user.Role.Libelle);
+            return new AuthResponseDTO { Token = token, User = MapToResponse(user) };
         }
 
         public async Task<IEnumerable<UserResponseDTO>> GetAllAsync()
@@ -172,6 +174,16 @@ namespace CESIZen_API.API.User.Services
 
             await _userRepository.UpdateAsync(user);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<UserResponseDTO> ChangeRoleAsync(int id, ChangeRoleDTO dto)
+        {
+            var user = await _userRepository.FindAsync(id)
+                ?? throw new KeyNotFoundException("Utilisateur introuvable.");
+
+            user.RoleId = dto.RoleId;
+            await _userRepository.UpdateAsync(user);
+            return MapToResponse(user);
         }
 
         private static UserResponseDTO MapToResponse(UserModel user) => new()
