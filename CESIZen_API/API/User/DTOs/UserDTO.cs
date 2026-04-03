@@ -1,0 +1,78 @@
+using System.ComponentModel.DataAnnotations;
+using CESIZen_API.Shared.Validators;
+
+namespace CESIZen_API.API.User.DTOs
+{
+    public class RegisterDTO
+    {
+        [Required]
+        public string Nom { get; set; } = null!;
+
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = null!;
+
+        [Required]
+        [PasswordValidator]
+        public string Password { get; set; } = null!;
+    }
+
+    public class LoginDTO
+    {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = null!;
+
+        [Required]
+        public string Password { get; set; } = null!;
+    }
+
+    public class UpdateUserDTO
+    {
+        public string? Nom { get; set; }
+
+        [EmailAddress]
+        public string? Email { get; set; }
+
+        [PasswordValidator]
+        public string? Password { get; set; }
+    }
+
+    public class UserResponseDTO
+    {
+        public int Id { get; set; }
+        public string? Nom { get; set; }
+        public string Email { get; set; } = null!;
+        public int RoleId { get; set; }
+    }
+
+    public class ForgotPasswordDTO
+    {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = null!;
+    }
+
+    public class ResetPasswordDTO
+    {
+        [Required]
+        public string Token { get; set; } = null!;
+
+        [Required]
+        [PasswordValidator]
+        public string NewPassword { get; set; } = null!;
+    }
+
+    public class ChangeRoleDTO
+    {
+        [Required]
+        [Range(1, 2, ErrorMessage = "RoleId doit être 1 (ADMIN) ou 2 (USER).")]
+        public int RoleId { get; set; }
+    }
+
+    public class AuthResponseDTO
+    {
+        public string Token { get; set; } = null!;
+        public UserResponseDTO User { get; set; } = null!;
+    }
+}

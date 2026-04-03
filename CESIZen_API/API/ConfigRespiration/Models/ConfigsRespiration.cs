@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using CESIZen_API.API.Exercice.Models;
 
-namespace CESIZen_API.Models;
+namespace CESIZen_API.API.ConfigRespiration.Models;
 
-public partial class ConfigsRespiration
+public partial class ConfigsRespirationModel
 {
     public int Id { get; set; }
 
@@ -17,5 +18,5 @@ public partial class ConfigsRespiration
 
     public int NombreCycles { get; set; }
 
-    public virtual Exercice Exercice { get; set; } = null!;
+    public virtual ExerciceModel Exercice { get; set; } = null!;
 }
