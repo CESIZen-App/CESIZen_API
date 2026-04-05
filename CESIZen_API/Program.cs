@@ -1,5 +1,6 @@
+using CESIZen_API.Shared.Exceptions;
 using CESIZen_API.Shared.Extensions;
-using DotNetEnv; 
+using DotNetEnv;
 
 Env.Load();
 
@@ -28,10 +29,11 @@ app.UseExceptionHandler(errorApp =>
             var ex = error.Error;
             int statusCode = ex switch
             {
-                UnauthorizedAccessException => 401,
-                KeyNotFoundException => 404,
-                InvalidOperationException => 400,
-                _ => 500
+                ConflictException           => 409, // conflit de ressource (ex. email déjà utilisé)
+                UnauthorizedAccessException => 403, // authentifié mais non autorisé (401 est géré par [Authorize])
+                KeyNotFoundException        => 404,
+                InvalidOperationException   => 400,
+                _                           => 500
             };
             context.Response.StatusCode = statusCode;
             await context.Response.WriteAsJsonAsync(new { error = ex.Message });
