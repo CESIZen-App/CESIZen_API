@@ -21,7 +21,7 @@ namespace CESIZen_API.API.User.Controllers
         public async Task<IActionResult> Register([FromBody] RegisterDTO dto)
         {
             var result = await _userService.RegisterAsync(dto);
-            return Ok(result);
+            return StatusCode(StatusCodes.Status201Created, result);
         }
 
         [HttpPost("login")]

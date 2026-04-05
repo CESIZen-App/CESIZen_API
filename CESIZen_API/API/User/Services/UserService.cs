@@ -7,6 +7,7 @@ using CESIZen_API.API.User.Models;
 using CESIZen_API.API.User.Repositories;
 using CESIZen_API.Shared.Data;
 using CESIZen_API.Shared.Email;
+using CESIZen_API.Shared.Exceptions;
 using CESIZen_API.Shared.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -35,7 +36,7 @@ namespace CESIZen_API.API.User.Services
         {
             var existing = await _userRepository.GetByEmailAsync(dto.Email);
             if (existing != null)
-                throw new InvalidOperationException("Un utilisateur avec cet email existe déjà.");
+                throw new ConflictException("Un utilisateur avec cet email existe déjà.");
 
             var hash = PasswordUtils.HashPassword(dto.Password, out byte[] salt);
 
@@ -44,18 +45,16 @@ namespace CESIZen_API.API.User.Services
                 Nom = dto.Nom,
                 Email = dto.Email,
                 Password = $"{hash}:{Convert.ToHexString(salt)}",
-                RoleId = RoleIdUser   // FIXE : tous les nouveaux inscrits sont USER, pas ADMIN
+                RoleId = RoleIdUser   
             };
 
             await _userRepository.AddAsync(user);
-            // Rôle connu à la création (USER), pas besoin d'un aller-retour DB supplémentaire
             var token = GenerateToken(user, "USER");
             return new AuthResponseDTO { Token = token, User = MapToResponse(user) };
         }
 
         public async Task<AuthResponseDTO> LoginAsync(LoginDTO dto)
         {
-            // FIXE : on charge le Role pour avoir le libelle dans le JWT
             var user = await _userRepository.GetByEmailWithRoleAsync(dto.Email)
                 ?? throw new UnauthorizedAccessException("Email ou mot de passe incorrect.");
 
@@ -110,7 +109,6 @@ namespace CESIZen_API.API.User.Services
             await _userRepository.DeleteAsync(user);
         }
 
-        // FIXE : roleName est le libelle string ("ADMIN" / "USER") et non plus le RoleId
         private string GenerateToken(UserModel user, string roleName)
         {
             var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET")
