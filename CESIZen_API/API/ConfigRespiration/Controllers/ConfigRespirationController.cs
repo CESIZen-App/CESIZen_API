@@ -1,3 +1,6 @@
+// Contrôleur REST du module ConfigRespiration.
+// Les lectures sont publiques ; la création, modification et suppression nécessitent une authentification.
+
 using CESIZen_API.API.ConfigRespiration.DTOs;
 using CESIZen_API.API.ConfigRespiration.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -16,6 +19,10 @@ namespace CESIZen_API.API.ConfigRespiration.Controllers
             _configService = configService;
         }
 
+        /// <summary>
+        /// Retourne toutes les configurations d'un exercice donné.
+        /// Accessible sans authentification.
+        /// </summary>
         [HttpGet("exercice/{exerciceId}")]
         public async Task<IActionResult> GetByExercice(int exerciceId)
         {
@@ -23,6 +30,7 @@ namespace CESIZen_API.API.ConfigRespiration.Controllers
             return Ok(configs);
         }
 
+        /// <summary>Retourne une configuration par son identifiant. Accessible sans authentification.</summary>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -30,6 +38,7 @@ namespace CESIZen_API.API.ConfigRespiration.Controllers
             return Ok(config);
         }
 
+        /// <summary>Crée une configuration manuellement. Nécessite une authentification.</summary>
         [Authorize]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateConfigRespirationDTO dto)
@@ -38,6 +47,10 @@ namespace CESIZen_API.API.ConfigRespiration.Controllers
             return CreatedAtAction(nameof(GetById), new { id = config.Id }, config);
         }
 
+        /// <summary>
+        /// Met à jour partiellement une configuration existante.
+        /// Nécessite une authentification.
+        /// </summary>
         [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateConfigRespirationDTO dto)
@@ -46,6 +59,7 @@ namespace CESIZen_API.API.ConfigRespiration.Controllers
             return Ok(config);
         }
 
+        /// <summary>Supprime une configuration. Nécessite une authentification.</summary>
         [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)

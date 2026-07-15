@@ -1,0 +1,6 @@
+**/bin/
+**/obj/
+**/.vs/
+**/.idea/
+**/node_modules/
+CESIZen_API/CESIZen_API/.env
