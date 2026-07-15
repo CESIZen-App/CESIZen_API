@@ -1,3 +1,6 @@
+// Contrôleur REST du module Rôle.
+// Les lectures sont publiques ; la création, modification et suppression sont réservées aux administrateurs.
+
 using CESIZen_API.API.Role.DTOs;
 using CESIZen_API.API.Role.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -16,6 +19,7 @@ namespace CESIZen_API.API.Role.Controllers
             _roleService = roleService;
         }
 
+        /// <summary>Retourne la liste complète des rôles. Accessible sans authentification.</summary>
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -23,6 +27,7 @@ namespace CESIZen_API.API.Role.Controllers
             return Ok(roles);
         }
 
+        /// <summary>Retourne un rôle par son identifiant. Accessible sans authentification.</summary>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -30,14 +35,17 @@ namespace CESIZen_API.API.Role.Controllers
             return Ok(role);
         }
 
+        /// <summary>Crée un nouveau rôle. Réservé aux administrateurs.</summary>
         [Authorize(Roles = "ADMIN")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateRoleDTO dto)
         {
             var role = await _roleService.CreateAsync(dto);
+            // Retourne 201 Created avec l'en-tête Location pointant vers GET /api/role/{id}
             return CreatedAtAction(nameof(GetById), new { id = role.Id }, role);
         }
 
+        /// <summary>Met à jour le libellé d'un rôle existant. Réservé aux administrateurs.</summary>
         [Authorize(Roles = "ADMIN")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateRoleDTO dto)
@@ -46,6 +54,7 @@ namespace CESIZen_API.API.Role.Controllers
             return Ok(role);
         }
 
+        /// <summary>Supprime un rôle. Réservé aux administrateurs.</summary>
         [Authorize(Roles = "ADMIN")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)

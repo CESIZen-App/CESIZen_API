@@ -1,3 +1,7 @@
+// Contrôleur REST du module Information.
+// Les pages publiées sont accessibles sans authentification.
+// La gestion complète (brouillons inclus, création, modification, suppression) est réservée aux administrateurs.
+
 using CESIZen_API.API.Information.DTOs;
 using CESIZen_API.API.Information.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -16,7 +20,10 @@ namespace CESIZen_API.API.Information.Controllers
             _service = service;
         }
 
-        /// <summary>Pages publiées — visiteurs anonymes et utilisateurs connectés.</summary>
+        /// <summary>
+        /// Retourne les pages publiées (IsPublished = true).
+        /// Accessible sans authentification : visiteurs anonymes et utilisateurs connectés.
+        /// </summary>
         [HttpGet]
         public async Task<IActionResult> GetPublished()
         {
@@ -24,7 +31,10 @@ namespace CESIZen_API.API.Information.Controllers
             return Ok(items);
         }
 
-        /// <summary>Toutes les pages (publiées et brouillons) — admin uniquement.</summary>
+        /// <summary>
+        /// Retourne toutes les pages, publiées et brouillons.
+        /// Réservé aux administrateurs (nécessaire pour le panneau de gestion).
+        /// </summary>
         [Authorize(Roles = "ADMIN")]
         [HttpGet("all")]
         public async Task<IActionResult> GetAll()
@@ -33,6 +43,7 @@ namespace CESIZen_API.API.Information.Controllers
             return Ok(items);
         }
 
+        /// <summary>Retourne une page par son identifiant. Accessible sans authentification.</summary>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -40,7 +51,7 @@ namespace CESIZen_API.API.Information.Controllers
             return Ok(item);
         }
 
-        /// <summary>Créer une page — admin uniquement.</summary>
+        /// <summary>Crée une nouvelle page d'information. Réservé aux administrateurs.</summary>
         [Authorize(Roles = "ADMIN")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateInformationDTO dto)
@@ -49,7 +60,7 @@ namespace CESIZen_API.API.Information.Controllers
             return CreatedAtAction(nameof(GetById), new { id = item.Id }, item);
         }
 
-        /// <summary>Modifier le contenu d'une page — admin uniquement.</summary>
+        /// <summary>Modifie le contenu ou le statut d'une page. Réservé aux administrateurs.</summary>
         [Authorize(Roles = "ADMIN")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateInformationDTO dto)
@@ -58,7 +69,7 @@ namespace CESIZen_API.API.Information.Controllers
             return Ok(item);
         }
 
-        /// <summary>Supprimer une page — admin uniquement.</summary>
+        /// <summary>Supprime définitivement une page. Réservé aux administrateurs.</summary>
         [Authorize(Roles = "ADMIN")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)

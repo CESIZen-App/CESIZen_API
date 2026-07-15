@@ -1,3 +1,5 @@
+// Interface du service Rôle. Définit les opérations CRUD pour la gestion des rôles.
+
 using CESIZen_API.API.Role.DTOs;
 
 namespace CESIZen_API.API.Role.Services

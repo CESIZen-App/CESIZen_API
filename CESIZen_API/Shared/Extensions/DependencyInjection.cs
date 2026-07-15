@@ -1,3 +1,8 @@
+// Extension de configuration de l'injection de dépendances.
+// Centralise l'enregistrement de tous les services, repositories, JWT, Swagger, EF Core et CORS
+// dans une seule méthode d'extension InjectDependencies() appelée dans Program.cs.
+// Chaque méthode privée correspond à une catégorie de configuration.
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -23,6 +28,10 @@ namespace CESIZen_API.Shared.Extensions
 {
     public static class DependencyInjectionExtensions
     {
+        /// <summary>
+        /// Point d'entrée unique : enregistre tous les services, repositories et middlewares.
+        /// Appelé dans Program.cs avant builder.Build().
+        /// </summary>
         public static void InjectDependencies(this WebApplicationBuilder builder)
         {
             builder.Services.AddControllers();
@@ -35,6 +44,10 @@ namespace CESIZen_API.Shared.Extensions
             builder.ConfigureCors();
         }
 
+        /// <summary>
+        /// Enregistre les services métier et le service email.
+        /// Les factories du pattern Factory (exercices de respiration) sont aussi enregistrées ici.
+        /// </summary>
         public static void AddServices(this WebApplicationBuilder builder)
         {
             builder.Services.AddScoped<IUserService, UserService>();
@@ -44,13 +57,18 @@ namespace CESIZen_API.Shared.Extensions
             builder.Services.AddScoped<IInformationService, InformationService>();
             builder.Services.AddScoped<IEmailService, SmtpEmailService>();
 
-            // Factory pattern — exercices de respiration
+            // Factory pattern — chaque implémentation est enregistrée séparément,
+            // le resolver les regroupe dans un dictionnaire (type → factory)
             builder.Services.AddScoped<IExerciceRespirationFactory, Technique748Factory>();
             builder.Services.AddScoped<IExerciceRespirationFactory, Technique55Factory>();
             builder.Services.AddScoped<IExerciceRespirationFactory, Technique46Factory>();
             builder.Services.AddScoped<ExerciceRespirationFactoryResolver>();
         }
 
+        /// <summary>
+        /// Enregistre le repository générique et les repositories spécifiques.
+        /// Le repository générique IBaseRepository&lt;T&gt; est enregistré en open generic.
+        /// </summary>
         public static void AddRepositories(this WebApplicationBuilder builder)
         {
             builder.Services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
@@ -58,10 +76,14 @@ namespace CESIZen_API.Shared.Extensions
             builder.Services.AddScoped<IExerciceRepository, ExerciceRepository>();
             builder.Services.AddScoped<IConfigRespirationRepository, ConfigRespirationRepository>();
             builder.Services.AddScoped<IInformationRepository, InformationRepository>();
-
             builder.Services.AddScoped(typeof(IRoleRepository), typeof(RoleRepository));
         }
 
+        /// <summary>
+        /// Configure l'authentification JWT Bearer.
+        /// Le secret JWT est lu depuis les variables d'environnement (priorité) ou la configuration.
+        /// La validation de l'issuer et de l'audience est désactivée (API interne).
+        /// </summary>
         public static void AddJWT(this WebApplicationBuilder builder)
         {
             var jwtSecret = builder.Configuration["JWT_SECRET"]
@@ -73,7 +95,7 @@ namespace CESIZen_API.Shared.Extensions
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme    = JwtBearerDefaults.AuthenticationScheme;
             })
             .AddJwtBearer(options =>
             {
@@ -81,29 +103,35 @@ namespace CESIZen_API.Shared.Extensions
                 options.SaveToken = true;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
+                    ValidateIssuer           = false,
+                    ValidateAudience         = false,
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(key)
+                    IssuerSigningKey         = new SymmetricSecurityKey(key)
                 };
             });
 
             builder.Services.AddAuthorization();
         }
 
+        /// <summary>
+        /// Configure Swagger/OpenAPI avec le support de l'authentification JWT Bearer
+        /// pour pouvoir tester les endpoints protégés directement depuis l'interface Swagger UI.
+        /// </summary>
         public static void AddSwagger(this WebApplicationBuilder builder)
         {
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(options =>
             {
+                // Définition du schéma de sécurité Bearer pour Swagger UI
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
                 {
-                    Name = "Authorization",
-                    In = ParameterLocation.Header,
-                    Type = SecuritySchemeType.Http,
+                    Name   = "Authorization",
+                    In     = ParameterLocation.Header,
+                    Type   = SecuritySchemeType.Http,
                     Scheme = "Bearer"
                 });
 
+                // Applique la sécurité Bearer à tous les endpoints
                 options.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
                     {
@@ -112,7 +140,7 @@ namespace CESIZen_API.Shared.Extensions
                             Reference = new OpenApiReference
                             {
                                 Type = ReferenceType.SecurityScheme,
-                                Id = "Bearer"
+                                Id   = "Bearer"
                             }
                         },
                         Array.Empty<string>()
@@ -121,6 +149,10 @@ namespace CESIZen_API.Shared.Extensions
             });
         }
 
+        /// <summary>
+        /// Configure Entity Framework Core avec le driver Npgsql (PostgreSQL).
+        /// La chaîne de connexion est lue depuis la configuration (appsettings ou variables d'env).
+        /// </summary>
         public static void AddEFCoreConfiguration(this WebApplicationBuilder builder)
         {
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
@@ -130,6 +162,11 @@ namespace CESIZen_API.Shared.Extensions
                 options.UseNpgsql(connectionString));
         }
 
+        /// <summary>
+        /// Configure la politique CORS "AllowFrontend".
+        /// Autorise tous les origins localhost (front-end React et mobile en développement)
+        /// avec toutes les méthodes et en-têtes.
+        /// </summary>
         public static void ConfigureCors(this WebApplicationBuilder builder)
         {
             builder.Services.AddCors(options =>
@@ -138,7 +175,8 @@ namespace CESIZen_API.Shared.Extensions
                     policy =>
                     {
                         policy.SetIsOriginAllowed(origin =>
-                                new Uri(origin).Host == "localhost"
+                                Uri.TryCreate(origin, UriKind.Absolute, out var uri) &&
+                                uri.Host == "localhost"
                             )
                             .AllowAnyMethod()
                             .AllowAnyHeader();
