@@ -5,9 +5,11 @@
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using System.Threading.RateLimiting;
 using CESIZen_API.API.ConfigRespiration.Repositories;
 using CESIZen_API.API.ConfigRespiration.Services;
 using CESIZen_API.API.Exercice.Factory;
@@ -28,6 +30,10 @@ namespace CESIZen_API.Shared.Extensions
 {
     public static class DependencyInjectionExtensions
     {
+        /// <summary>Issuer/Audience du JWT — partagés entre la validation (ici) et la génération (UserService).</summary>
+        public const string JwtIssuer   = "CESIZen_API";
+        public const string JwtAudience = "CESIZen_Clients";
+
         /// <summary>
         /// Point d'entrée unique : enregistre tous les services, repositories et middlewares.
         /// Appelé dans Program.cs avant builder.Build().
@@ -42,6 +48,30 @@ namespace CESIZen_API.Shared.Extensions
             builder.AddSwagger();
             builder.AddEFCoreConfiguration();
             builder.ConfigureCors();
+            builder.AddRateLimiting();
+        }
+
+        /// <summary>
+        /// Politique de limitation de débit "LoginPolicy" : 5 tentatives par minute et par IP sur
+        /// les endpoints d'authentification sensibles (login, forgot-password), pour limiter les
+        /// attaques par force brute sur les mots de passe.
+        /// </summary>
+        public static void AddRateLimiting(this WebApplicationBuilder builder)
+        {
+            builder.Services.AddRateLimiter(options =>
+            {
+                options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+                options.AddPolicy("LoginPolicy", httpContext =>
+                    RateLimitPartition.GetFixedWindowLimiter(
+                        partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                        factory: _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = 5,
+                            Window      = TimeSpan.FromMinutes(1),
+                            QueueLimit  = 0
+                        }));
+            });
         }
 
         /// <summary>
@@ -99,12 +129,14 @@ namespace CESIZen_API.Shared.Extensions
             })
             .AddJwtBearer(options =>
             {
-                options.RequireHttpsMetadata = false; // Mettre à true en production
+                options.RequireHttpsMetadata = builder.Environment.IsProduction();
                 options.SaveToken = true;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuer           = false,
-                    ValidateAudience         = false,
+                    ValidateIssuer           = true,
+                    ValidIssuer              = JwtIssuer,
+                    ValidateAudience         = true,
+                    ValidAudience            = JwtAudience,
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey         = new SymmetricSecurityKey(key)
                 };

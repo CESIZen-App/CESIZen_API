@@ -3,7 +3,8 @@
 //   - Au moins 2 chiffres
 //   - Au moins 2 lettres majuscules
 //   - Au moins 2 lettres minuscules
-//   - Entre 8 et 15 caractères
+//   - Entre 8 et 128 caractères (borne haute généreuse pour permettre des phrases de passe longues,
+//     recommandées par les standards actuels — NIST SP 800-63B — plutôt qu'un plafond restrictif)
 //   - Au moins 3 symboles parmi : . + * ? ! : ; , ^ @ / $ ( ) { } |
 // Utilisé sur les propriétés Password des DTOs Register, UpdateUser et ResetPassword.
 
@@ -34,7 +35,7 @@ public class PasswordValidator : ValidationAttribute
         var hasNumber        = new Regex(@"[0-9]{2,}");
         var hasUpperLetters  = new Regex(@"[A-Z]{2,}");
         var hasLowerCase     = new Regex(@"[a-z]{2,}");
-        var hasEnoughChars   = new Regex(@".{8,15}");
+        var hasEnoughChars   = new Regex(@".{8,128}");
         var hasSymbol        = new Regex(@"[.+*?!:;,^@/$(){}|]{3,}");
 
         if (!hasNumber.IsMatch(input))
@@ -47,7 +48,7 @@ public class PasswordValidator : ValidationAttribute
             messages.Add("Il manque des lettres minuscules.");
 
         if (!hasEnoughChars.IsMatch(input))
-            messages.Add("On doit avoir entre 8 et 15 caractères.");
+            messages.Add("On doit avoir entre 8 et 128 caractères.");
 
         if (!hasSymbol.IsMatch(input))
             messages.Add("Il manque des symboles.");

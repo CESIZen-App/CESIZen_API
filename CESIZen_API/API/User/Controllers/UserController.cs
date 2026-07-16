@@ -8,6 +8,7 @@ using CESIZen_API.API.User.DTOs;
 using CESIZen_API.API.User.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace CESIZen_API.API.User.Controllers
 {
@@ -30,7 +31,8 @@ namespace CESIZen_API.API.User.Controllers
             return StatusCode(StatusCodes.Status201Created, result);
         }
 
-        /// <summary>Connexion → 200 OK + JWT.</summary>
+        /// <summary>Connexion → 200 OK + JWT. Limité à 5 tentatives/minute/IP (protection brute-force).</summary>
+        [EnableRateLimiting("LoginPolicy")]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDTO dto)
         {
@@ -111,6 +113,7 @@ namespace CESIZen_API.API.User.Controllers
         /// Demande d'envoi d'un email de réinitialisation de mot de passe.
         /// Retourne toujours 200 OK même si l'email n'existe pas (anti-énumération).
         /// </summary>
+        [EnableRateLimiting("LoginPolicy")]
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDTO dto)
         {

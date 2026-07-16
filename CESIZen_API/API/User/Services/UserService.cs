@@ -160,6 +160,8 @@ namespace CESIZen_API.API.User.Services
             };
 
             var token = new JwtSecurityToken(
+                issuer:             CESIZen_API.Shared.Extensions.DependencyInjectionExtensions.JwtIssuer,
+                audience:           CESIZen_API.Shared.Extensions.DependencyInjectionExtensions.JwtAudience,
                 claims:             claims,
                 expires:            DateTime.UtcNow.AddDays(7),
                 signingCredentials: credentials

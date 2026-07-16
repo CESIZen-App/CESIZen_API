@@ -66,8 +66,10 @@ app.UseExceptionHandler(errorApp =>
     });
 });
 
-// Activation du CORS (politique "AllowFrontend" : autorise tous les origins localhost)
+// Activation du CORS (politique "AllowFrontend" : localhost + origines listées dans ALLOWED_ORIGINS)
 app.UseCors("AllowFrontend");
+// Limitation de débit (protection contre le brute-force sur les endpoints d'authentification)
+app.UseRateLimiter();
 // Middlewares d'authentification et d'autorisation JWT
 app.UseAuthentication();
 app.UseAuthorization();
