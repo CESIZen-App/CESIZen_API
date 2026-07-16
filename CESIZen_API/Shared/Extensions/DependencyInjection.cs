@@ -165,10 +165,14 @@ namespace CESIZen_API.Shared.Extensions
         /// <summary>
         /// Configure la politique CORS "AllowFrontend".
         /// Autorise tous les origins localhost (front-end React et mobile en développement)
-        /// avec toutes les méthodes et en-têtes.
+        /// ainsi que les origines listées dans la variable d'environnement ALLOWED_ORIGINS
+        /// (liste séparée par des virgules, ex. l'URL du front-end déployé en production).
         /// </summary>
         public static void ConfigureCors(this WebApplicationBuilder builder)
         {
+            var allowedOrigins = (Environment.GetEnvironmentVariable("ALLOWED_ORIGINS") ?? "")
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowFrontend",
@@ -176,7 +180,7 @@ namespace CESIZen_API.Shared.Extensions
                     {
                         policy.SetIsOriginAllowed(origin =>
                                 Uri.TryCreate(origin, UriKind.Absolute, out var uri) &&
-                                uri.Host == "localhost"
+                                (uri.Host == "localhost" || allowedOrigins.Contains(origin))
                             )
                             .AllowAnyMethod()
                             .AllowAnyHeader();
