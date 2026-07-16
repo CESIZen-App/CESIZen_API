@@ -48,8 +48,8 @@ namespace CESIZen_API.API.User.Controllers
             return Ok(user);
         }
 
-        /// <summary>Liste tous les utilisateurs — nécessite d'être authentifié.</summary>
-        [Authorize]
+        /// <summary>Liste tous les utilisateurs — réservé aux administrateurs.</summary>
+        [Authorize(Roles = "ADMIN")]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -57,31 +57,45 @@ namespace CESIZen_API.API.User.Controllers
             return Ok(users);
         }
 
-        /// <summary>Retourne un utilisateur par son identifiant.</summary>
+        /// <summary>Retourne un utilisateur par son identifiant (soi-même, ou n'importe qui pour un ADMIN).</summary>
         [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
+            if (!IsSelfOrAdmin(id)) return Forbid();
             var user = await _userService.GetByIdAsync(id);
             return Ok(user);
         }
 
-        /// <summary>Met à jour les informations d'un utilisateur.</summary>
+        /// <summary>Met à jour les informations d'un utilisateur (soi-même, ou n'importe qui pour un ADMIN).</summary>
         [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateUserDTO dto)
         {
+            if (!IsSelfOrAdmin(id)) return Forbid();
             var user = await _userService.UpdateAsync(id, dto);
             return Ok(user);
         }
 
-        /// <summary>Supprime un utilisateur par son identifiant.</summary>
+        /// <summary>Supprime un utilisateur par son identifiant (soi-même, ou n'importe qui pour un ADMIN).</summary>
         [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
+            if (!IsSelfOrAdmin(id)) return Forbid();
             await _userService.DeleteAsync(id);
             return NoContent();
+        }
+
+        /// <summary>
+        /// Vérifie que l'utilisateur authentifié agit sur son propre compte, ou qu'il est ADMIN.
+        /// Empêche un utilisateur "USER" de consulter/modifier/supprimer le compte d'un autre (IDOR).
+        /// </summary>
+        private bool IsSelfOrAdmin(int targetUserId)
+        {
+            if (User.IsInRole("ADMIN")) return true;
+            var callerId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            return callerId == targetUserId;
         }
 
         /// <summary>Change le rôle d'un utilisateur — réservé aux ADMIN.</summary>
