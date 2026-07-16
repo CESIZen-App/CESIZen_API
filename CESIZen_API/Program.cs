@@ -16,7 +16,14 @@ var builder = WebApplication.CreateBuilder(args);
 // Injection de toutes les dépendances (services, repositories, JWT, Swagger, EF Core, CORS)
 builder.InjectDependencies();
 
+// Healthcheck : utilisé par Render (et tout outil de supervision) pour déterminer si
+// l'instance est saine. Sans route sur "/", le healthcheck par défaut de Render (qui teste "/")
+// obtenait un 404 et faisait sortir/rentrer l'instance de rotation de façon intermittente.
+builder.Services.AddHealthChecks();
+
 var app = builder.Build();
+
+app.MapHealthChecks("/health");
 
 // Documentation Swagger activée uniquement en développement
 if (app.Environment.IsDevelopment())
